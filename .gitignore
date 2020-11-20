@@ -58,3 +58,6 @@ target/
 
 # Mac related
 .DS_Store
+
+# cpp related
+*.out
