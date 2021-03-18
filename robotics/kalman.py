@@ -1,5 +1,7 @@
 from logging import DEBUG, basicConfig, getLogger
-from random import random
+from random import randint, random
+
+import matplotlib.pyplot as plt
 
 
 class KalmanFilter(object):
@@ -12,13 +14,15 @@ class KalmanFilter(object):
         delta: float = 0.01,
         delta_hat: float = 0.0,
         logging: bool = False,
+        plotting: bool = False,
     ):
         self.estimate = initial_estimate
         self.gain = random()
         self.est_error = initial_est_error
         self.measure_error = initial_measure_error
-        self.sensor_values = sensor_values
+        self.sensor_values = [70 + randint(-20, 20) for _ in range(sensor_values)]
         self.logging = logging
+        self.plotting = plotting
 
         if self.logging:
             self.logger = getLogger(__name__)
@@ -39,11 +43,28 @@ class KalmanFilter(object):
         self.est_error = (1 - self.gain) * self.est_error
 
     def iterative_updates(self) -> None:
+        e = []
         for sensor_value in self.sensor_values:
             self.calculate_kalman_gain()
             self.update_estimate(sensor_value=sensor_value)
             self.calculate_estimate_error()
             self.logger.info(f"estimate: {self.estimate}")
+            e.append(self.estimate)
+        if self.plotting:
+            fig = plt.figure()
+            plt.plot(
+                range(len(self.sensor_values)),
+                self.sensor_values,
+                "x",
+                color="gray",
+                label="sensor values",
+            )
+            plt.plot(
+                range(len(self.sensor_values)), e, "-k", color="blue", label="Kalman estimate"
+            )
+            plt.legend(loc="upper left")
+            plt.ylim(30, 120)
+            plt.show()
 
 
 if __name__ == "__main__":
@@ -51,22 +72,9 @@ if __name__ == "__main__":
         initial_estimate=68.0,
         initial_est_error=2.0,
         initial_measure_error=4.0,
-        sensor_values=[
-            75.0,
-            71.0,
-            70.0,
-            74.0,
-            73.0,
-            69.0,
-            65.0,
-            76.0,
-            77.0,
-            72.0,
-            73.0,
-            70.0,
-            75.0,
-        ],
+        sensor_values=500,
         logging=True,
+        plotting=True,
     )
     kf.iterative_updates()
 
